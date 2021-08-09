@@ -350,3 +350,175 @@
 
    <br />
 
+### 비동기 테스트
+
+- 비동기 테스트를 위한 APIProvider의 asyncTask 간단한 함수 생성
+
+![tdd-image-9](./images/tdd-image-9.png)
+
+<br />
+
+- APIProvider의 asyncTask 함수 호출 결과를 위한 간단한 테스트 코드
+
+   ![tdd-image-10](./images/tdd-image-10.png)
+
+- 하지만 위의 테스트 코드는 반드시 실패한다. asyncTask가 비동기 함수이기 때문에 Assert 검증 시 resultOfTask 값은 nil이기 때문이다.
+
+<br />
+
+- 따라서 이러한 비동기 테스트를 하기 위해서는 XCTestCase의 wait:for:timeout을 활용할 수 있다.
+
+   ![tdd-image-11](./images/tdd-image-11.png)
+
+   - XCTestExpectation을 생성하고 대기하기를 원하는 위치에서 wait 함수를 호출한다.
+
+   - 비동기 작업이 끝나는 시점에 expectation의 fulfill 함수 호출
+
+<br />
+
+### UI Test
+
+- UI 테스트를 위해서는 XCUIApplication의 launch 함수를 호출해서 앱을 실행해줘야 한다. setUp 에서 호출하면 테스트 함수가 실행되기 직전에 매번 앱이 실행된다.
+
+- XCUIElement
+
+   - UI 테스트에서 UIButton 또는 UILabel 등의 컴포넌트를 대신하는 객체
+
+   - XCUIElement의 대표적인 Property 및 함수
+
+      - exists : Element 존재 여부
+
+      - tap : 터치
+
+      - typeText : 텍스트 입력
+
+- XCUIElementQuery
+
+   - 화면에 그려진 XCUIElement를 찾기 위해서는 XCUIElementQuery를 사용할 수 있다.
+
+<br />
+
+- 간단한 Github의 API를 이용하여 사용자를 검색하면 테이블 뷰로 보여주는 앱의 UI 테스트
+
+- 앱의 테스트 케이스 및 시나리오
+
+   - 검색어를 입력하면 검색 결과를 확인할 수 있는지?
+
+      1. SearchBar의 TextField 탭
+
+      1. 검색어 입력
+
+      1. 검색 결과 있는지 확인
+
+   - 검색어를 삭제하면 검색 결과가 초기화 되는지?
+
+      1. SearchBar의 TextField 탭
+
+      1. 검색어 입력
+
+      1. 검색 결과 있는지 확인
+
+      1. 검색어 삭제
+
+      1. 검색 결과 있는지 확인(결과가 없어야 함)
+
+   - 검색 결과를 터치하면 상세 화면으로 이동하는지?
+
+      1. SearchBar의 TextField 탭
+
+      1. 검색어 입력
+
+      1. 검색 결과 있는지 확인
+
+      1. 첫 번째 셀 터치 가능한지 확인
+
+      1. 셀 터치
+
+      1. 상세 화면으로 이동하는지 확인
+
+   - 검색 결과를 받아왔을 때, 테이블 뷰를 스크롤하면 페이징이 작동하는지?
+
+      1. SearchBar의 TextField 탭
+
+      1. 검색어 입력
+
+      1. 검색 결과 있는지 확인
+
+      1. 테이블 뷰를 스크롤
+
+      1. 다음 페이지가 테이블 뷰의 하단에 추가되었는지 확인
+
+   <br />
+
+   - Case 1 : 검색어를 입력하면 검색 결과를 확인할 수 있는지?
+
+      - 앱에서 SearchBar Element를 우선 찾는다
+
+      - app (XCUIApplication Element)에서 searchFields라는 Query로 Element를 찾은 후, 매칭되는 첫 번째 Element를 가져온다
+
+      - 그리고 Search Bar Element를 제대로 찾았는지 검사
+
+         ![tdd-image-12](./images/tdd-image-12.png)
+
+      - 위에서 찾은 SearchBar를 터치하고 텍스트를 입력
+
+         ![tdd-image-13](./images/tdd-image-13.png)
+
+      - 검색 결과를 잘 받아왔는지 확인
+
+         ![tdd-image-14](./images/tdd-image-14.png)
+
+      - 앱에 보이는 모든 테이블 셀 중, 첫 번째 셀을 가져오고 exists 상태인지 여부 확인
+
+      - 검색어가 입력되면 github 서버의 응답을 받을 때까지 대기하고 셀의 exists 상태를 확인해야 되기 때문에 waitForExistence:timeout 함수 활용
+
+      - 결과
+
+         ![tdd-image-15](./images/tdd-image-15.png)
+
+      <br />
+
+   - Case 2 : 검색어를 삭제하면 검색 결과가 초기화 되는지?
+
+      - Case 1 시나리오 이후로 검색어 삭제
+
+         ![tdd-image-16](./images/tdd-image-16.png)
+
+      - 검색 결과 없는지 확인
+
+      ![tdd-image-17](./images/tdd-image-17.png)
+
+      - 결과
+
+         ![tdd-image-18](./images/tdd-image-18.png)
+
+   - Case 3 : 검색 결과를 터치하면 상세 화면으로 이동하는지?
+
+      -  Case 1 시나리오 이후 첫번째 셀 터치 가능한지 확인 후 셀 터치
+
+         ![tdd-image-19](./images/tdd-image-19.png)
+
+      - 상세 화면으로 이동하는지 확인
+
+         ![tdd-image-20](./images/tdd-image-20.png)
+
+      - 결과
+
+         ![tdd-image-21](./images/tdd-image-21.png)
+
+   - Case 4 : 검색 결과를 받아왔을 때, 테이블 뷰를 스크롤하면 페이징이 작동하는지?
+
+      - Case 1 시나리오 이후 테이블 뷰 스크롤
+
+         ![tdd-image-22](./images/tdd-image-22.png)
+
+      - 다음 페이지가 테이블 뷰 하단에 추가되었는지 확인
+
+         ![tdd-image-23](./images/tdd-image-23.png)
+
+      - 결과
+
+         ![tdd-image-24](./images/tdd-image-24.png)
+
+      <br />
+
