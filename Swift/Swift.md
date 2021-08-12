@@ -786,6 +786,16 @@ result(10)  // 40
 
       1. 클로저 표현식 : 이름이 없으며 주변 환경으로부터 값을 캡처할 수 있는 경량 문법으로 작성된 클로저
 
+   - 스위프트에서 클로저는 참조 형식이다
+
+   - 클로저는 외부에 선언되어 있는 변수를 클로저 내부에서 사용할 때 값을 캡처
+
+   - 캡처한 값은 대상의 사용 범위에 관계 없이 클로저가 실행되는 동안 메모리에 유지
+
+   - 클로저는 값을 캡처할 때 참조 전달
+
+   - 클로저가 값을 캡처할 때 발생할 수 있는 retain cycle 문제는 약한 참조와 클로저 캡처 목록을 통해 해결할 수 있음
+
 <br />
 
 #### 클로저 표현식
@@ -1097,6 +1107,12 @@ result(10)  // 40
 
    - 부모 클래스에서 기본 초기화 구문 외에 다른 형식의 초기화 구문이 추가되어 있다면, 자식 클래스에서 기본 초기화 구문을 오버라이딩할 때 명시적으로 부모 클래스의 기본 초기화 구문을 호출해야 한다
 
+   - Convenience init
+
+      - 보조 이니셜라이저
+
+      - 동일 클래스에 구현되어있는 다른 지정 생성자를 호출해야 함
+
    <br />
 
 #### 옵셔널 체인
@@ -1385,4 +1401,319 @@ do {
    ```
 
 - try! 키워드를 사용해 오류가 발생하면 런타임 오류로 이어진다
+
+<br />
+
+### 값 타입과 참조 타입
+
+#### 값 타입
+
+- 값 타입으로 선언된 값은 메모리의 스택 영역에 저장
+
+- 파라미터로 전달되거나 리턴 값으로 사용될 때 같은 값을 가진 복사본이 생성
+
+- 스택 공간에 생성된 값 타입의 메모리는 자신이 속한 범위(Scope)의 코드 실행이 종료되면 자동으로 제거
+
+- 구조체, 열거형, 기본 자료형
+
+#### 참조 타입
+
+- 참조 타입으로 선언된 값은 스택과 힙 영역에 저장, 값은 힙 영역에 저장되고 스택 영역에는 힙 영역에 저장된 값의 주소를 저장
+
+- 참조 형식은 선언 후 값을 초기화하지 않으면 기본적으로 nil이 저장
+
+- 즉, 스택 공간에 생성된 변수의 메모리에는 0x0 주소가 저장, 그리고 초기값을 지정하지 않았으므로 힙 영역에는 메모리 공간이 생성되지 않는다
+
+- 클래스, 클로저
+
+<br />
+
+#### 박싱과 언박싱
+
+- 박싱 : 값 타입을 참조 타입으로 바꾸는 것
+
+- 언박싱 : 참조 타입을 값 타입으로 바꾸는 것
+
+<br />
+
+#### Exponential growth 전략
+
+- 스위프트는 위 전략을 통해 새로운 메모리 공간을 할당할 때마다 이전보다 두 배 이상 큰 공간을 할당
+
+#### Copy On Write(COW) 전략
+
+- 데이터를 수정하려고 할 때까지 컴파일러는 값 타입의 복사본을 생성하지 않고 참조를 전달한다
+
+<br />
+
+<br />
+
+### 서브스크립트
+
+- [ ]와 첨자를 사용해서 인스턴스 속성에 접근할 수 있는 문법
+
+- 클래스, 구조체, 열거형에서 구현 가능
+
+- 이름이 없는 메소드로 볼 수 있고 파라미터 목록과 리턴형을 선언하는 문법은 메소드와 동일
+
+- 서브스크립트는 파라미터와 리턴형 생략 불가능
+
+```swift
+subscript(파라미터 목록) -> 리턴형 {
+	get {
+		값을 리턴하는 코드
+	}
+	set {
+		값을 설정하는 코드
+	}
+}
+```
+
+<br />
+
+### 제네릭
+
+- 일반화 프로그래밍이라고도 함
+
+- 자료형에 의존하지 않고 범용 코드를 작성해 재사용성과 편의성을 높이는 프로그래밍 방법
+
+- 형식 제약(Type Constraints)
+
+   ```swift
+   func compare<T: Equatable>(lhs: T, rhs: T) -> Bool {
+   	return lhs == rhs
+   }
+   ```
+
+   - 형식 제약으로 지정할 수 있는 형식은 클래스와 프로토콜로 한정
+
+   <br />
+
+#### 연산자 메소드
+
+- 기본적으로 제공되는 연산자 구현에 새로운 구현을 추가할 때(오버로딩) 사용
+
+```swift
+static func 연산자(파라미터 목록) -> 리턴형 {
+	// ...
+}
+```
+
+<br />
+
+- 단항 연산자 오버로딩
+
+   - 단항 연산자 : -a와 같이 피연산자가 하나인 연산자
+
+   - 전치 연산자(prefix operator) : 연산자가 피연산자의 앞에 위치하는 경우, 전치 연산자를 오버로딩하는 경우 prefix 키워드 사용
+
+      ```swift
+      struct KOffset {
+      	var x = 0.0
+      	var y = 0.0
+      
+      	prefix static func -(offset: KOffset) -> KOffset {
+      			return KOffset(x: -offset.x, y: -offset.y)
+      	}
+      }
+      
+      let offset = KOffset(x: -100, y: 200)
+      let newOffset = -offset
+      print(newOffset)   // {100, -200}
+      ```
+
+   - 후치 연산자(postfix operator) : 연산자가 피연산자 뒤에 위치하는 경우, postfix 키워드 사용
+
+      ```swift
+      struct KSize {
+          var width = 0.0
+          var height = 0.0
+          
+          postfix static func ++(size: inout KSize) -> KSize {
+              let current = size
+              size = KSize(width: size.width + 1, height: size.height + 1)
+              return current
+          }
+      }
+      
+      var size = KSize(width: 5, height: 5)
+      print(size++) // KSize(width: 5.0, height: 5.0)
+      print(size)   // KSize(width: 6.0, height: 6.0)
+      ```
+
+- 이항 연산자 오버로딩
+
+   - 이항 연산자 : a + b와 같이 피연산자가 두 개인 연산자
+
+      ```swift
+      struct KSize {
+          var width = 0.0
+          var height = 0.0
+          
+          static func +(lhs: KSize, rhs: KSize) -> KSize {
+              return KSize(width: lhs.width + rhs.width, height: lhs.height + rhs.height)
+          }
+          
+          static func *(lhs: KSize, rhs: Double) -> KSize {
+              return KSize(width: lhs.width * rhs, height: lhs.height * rhs)
+          }
+          
+          static func *(lhs: Double, rhs: KSize) -> KSize {
+              return KSize(width: lhs * rhs.width, height: lhs * rhs.height)
+          }
+      }
+      
+      let size1 = KSize(width: 5, height: 5)
+      let size2 = KSize(width: 3, height: 3)
+      print(size1 + size2) // KSize(width: 8.0, height: 8.0)
+      print(size1 * 3.0)   // KSize(width: 15.0, height: 15.0)
+      print(3.0 * size1)   // KSize(width: 15.0, height: 15.0)
+      ```
+
+- 복합 할당 연산자 오버로딩
+
+   - 연산의 결과가 왼쪽 피연산자에 할당되기 때문에 왼쪽 피연산자를 반드시 입출력 파라미터(inout)으로 전달해야 한다
+
+      ```swift
+      struct KSize {
+          var width = 0.0
+          var height = 0.0
+          
+          static func +=(lhs: inout KSize, rhs: KSize) {
+              lhs = KSize(width: lhs.width + rhs.width, height: lhs.height + rhs.height)
+          }
+      }
+      
+      var size = KSize(width: 5, height: 5)
+      size += KSize(width: 3, height: 3)
+      print(size)   // KSize(width: 8.0, height: 8.0)
+      ```
+
+- 비교 연산자 오버로딩
+
+   - 이항 연산자와 동일한 방식으로 오버로딩, 리턴형에 제약이 있는 것은 아니지만 일반적으로 Bool 리턴
+
+      ```swift
+      struct KSize {
+          var width = 0.0
+          var height = 0.0
+          
+          static func ==(lhs: KSize, rhs: KSize) -> Bool {
+              return lhs.width == rhs.width && lhs.height == rhs.height
+          }
+          
+          static func !=(lhs: KSize, rhs:KSize) -> Bool {
+              return lhs.width != rhs.width || lhs.height != rhs.height
+          }
+      }
+      
+      let size1 = KSize(width: 5.0, height: 5.0)
+      let size2 = KSize(width: 5.0, height: 5.0)
+      
+      print(size1 == size2)  // true
+      print(size1 != size2)  // false
+      ```
+
+      <br />
+
+      <br />
+
+      <br />
+
+### 메모리 관리
+
+#### 소유 정책
+
+- 참조 카운트를 관리하는 규칙
+
+- 모든 객체는 생성될 때 참조 카운트가 1이 된다.
+
+- 객체에 retain 메시지를 보내면 참조 카운트가 1 증가한다. 이 메시지를 보낸 호출자는 객체를 소유한다.
+
+- 객체에 release 메시지를 보내면 참조 카운트가 1 감소한다. 이 메시지를 보낸 호출자는 객체의 소유권을 포기한다.
+
+- autorelease 메시지를 보내면 현재 사용 중인 오토릴리즈 풀 블록(autorelease pool block)의 실행이 종료되는 시점에 참조 카운트가 1 감소한다. 이 메시지를 보낸 호출자는 객체의 소유권을 포기한다.
+
+- 참조 카운트가 0이 되면 객체의 메모리가 해제된다.
+
+<br />
+
+#### Autorelease Pool
+
+- autorelease 메시지를 받은 객체가 해제되기 전까지 저장되는 공간
+
+- 이 공간에 저장된 객체들은 오토릴리즈 풀이 해제될 때 release 메시지를 받는다.
+
+- 하나의 객체가 여러 번 추가되었다면 추가된 횟수만큼 release 메시지를 받는다.
+
+- Xcode로 생성하는 모든 프로젝트는 메인 스레드에서 동작하는 기본 오토릴리즈 풀을 제공한다.
+
+- 모든 스레드는 오토릴리즈 풀 스택을 갖고 있고, 새롭게 생성된 오토릴리즈 풀은 스택 최상위에 추가된다.
+
+- autorelease 메시지를 받은 객체는 자신의 스레드에 존재하는 오토릴리즈 풀 중 스택 최상위에 있는 풀에 추가도니다.
+
+- 오토릴리즈 풀이 해제되는 경우 스택에서 제거되고 여기에 포함된 모든 객체들은 release 메시지를 받는다.
+
+- 스레드 자체가 종료되는 경우에도 스택에 있는 모든 풀이 자동으로 해제된다.
+
+```swift
+autoreleasepool {
+	// ...
+}
+```
+
+<br />
+
+#### Automatic Reference Counting(ARC)
+
+- 스위프트에서 사용하는 메모리 관리 모델
+
+- 컴파일러가 코드를 분석한 후 객체의 생명주기에 적합한 메모리 관리 코드를 추가하는 방식
+
+- 프로그래머가 직접 메모리를 관리하지 않는다는 측면에서 자바의 가비지 컬렉션과 유사하지만 차이점이 있다.
+
+   - 런타임에 주기적으로 메모리를 정리하는 GC와 달리 컴파일 시점에 코드가 자동으로 추가되는 방식이므로 런타임에 메모리 관리를 위한 오버헤드가 발생하지 않는다
+
+- ARC는 객체를 생성할 때마다 객체에 대한 정보를 저장하는 별도의 메모리 공간을 생성한다.
+
+- 이 공간에 객체에 대한 형식 정보와 속성 값이 저장되고 이를 바탕으로 메모리를 관리한다.
+
+1. Strong Reference(강한 참조)
+
+   - 인스턴스를 다른 속성, 변수, 상수에 할당할 때 참조 횟수가 1이 증가하고 nil을 할당하면 참조 횟수 1 감소한다.
+
+   - 별도의 식별자가 없다면 강한 참조로 인식
+
+   - 강한 참조의 경우 인스턴스끼리 서로 강한 참조를 소유하고 있을 때 강한 참조 사이클 문제(strong retain cycle)문제가 발생할 수 있다. ARC는 이러한 참조 사이클 문제를 스스로 해결할 수 없다.
+
+1. Weak Reference(약한 참조)
+
+   - 자신이 참조하는 객체에 대해 강한 참조를 유지하지 않는다. 즉, 인스턴스를 할당할 때 참조 횟수를 증가시키지 않는다.
+
+   - 약한 참조로 선언하기 위해서는 반드시 옵셔널로 선언해야 한다.
+
+   - 약한 참조로 참조 사이클 문제를 해결할 수 있다.
+
+1. Unowned Reference(미소유 참조)
+
+   - 참조 대상에 대한 강한 참조를 소유하지 않지만 항상 유효한 대상을 참조한다.
+
+   - 즉, 약한 참조와 달리 옵셔널로 선언되지 않고 nil 값을 가질 수 없다
+
+   - 참조 대상이 해제되는 경우 자동으로 nil로 변경되지 않기 때문에 런타임 오류 발생 가능성이 크다.
+
+#### 클로저의 강한 참조 사이클 문제
+
+- 클로저는 클래스와 마찬가지로 참조 형식이기 때문에 참조 사이클 문제로부터 자유로울 수 없다
+
+- 클로저 캡처 목록(Closure Capture List)를 통해 해결할 수 있다.
+
+   ```swift
+   {
+       [weak 캡처 대상] (파라미터 목록) -> 리턴형 in
+       // ...
+   }
+   ```
+
+   <br />
 
