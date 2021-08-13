@@ -10,7 +10,7 @@
 
 - [TDD 정리](https://github.com/zxc1460/Self_Study/blob/master/TDD/TDD.md)
 
-- [스크럼 정리](https://github.com/zxc1460/Self_Study/tree/master/스크럼)
+- [스크럼 정리](https://github.com/zxc1460/Self_Study/blob/master/스크럼/Scrum.md)
 
   
 
