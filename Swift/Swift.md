@@ -855,7 +855,34 @@ result(10)  // 40
 
 <br />
 
-<br />
+#### 고차 함수(Higher-order function)
+
+- 다른 함수를 파라미터로 받거나 함수 실행의 결과를 함수로 반환하는 함수
+
+- 스위프트 표준 라이브러리에서 제공하는 유용한 함수
+
+   - map : 컨테이너 내부의 기존 데이터를 변형하여 새로운 컨테이너를 생성
+
+      ```swift
+      let numbers = [0, 1, 2, 3, 4]
+      let doubleNumbers = numbers.map { $0 * 2 }  // [0, 2, 4, 6, 8]
+      let strNumbers = numbers.map { String($0) } // ["0", "1", "2", "3", "4"]
+      ```
+
+   - filter : 컨테이너 내부의 값을 걸러서 새로운 컨테이너 추출
+
+      ```swift
+      let numbers = [0, 1, 2, 3, 4]
+      let oddNumbers = numbers.filter { $0 % 2 == 1 }  // [1, 3]
+      let evenNumbers = numbers.filter { $0 % 2 == 0 } // [0, 2, 4]
+      ```
+
+   - reduce : 컨테이너 내부의 콘텐츠를 하나로 통합, 첫번째 인자는 초기값
+
+      ```swift
+      let numbers = [0, 1, 2, 3, 4]
+      let sum = numbers.reduce(0) { $0 + $1 } // 10
+      ```
 
 ### 구조체와 클래스
 
@@ -1716,4 +1743,6 @@ autoreleasepool {
    ```
 
    <br />
+
+<br />
 
