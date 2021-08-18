@@ -493,3 +493,396 @@ ex) 100 x 100 크기의 이미지를 200 x 200의 크기로 변경할 때 frame 
 
    - 이 경우 부모 뷰의 공간이 늘어날 때 다른 형제 뷰보다 더 빨리 늘어나고, 줄어들 때는 더 늦게 줄어든다.
 
+   <br />
+
+   #### @ViewBuilder
+
+   - 뷰 빌더는 함수로 정의된 매개 변수에 뷰를 전달 받아 하나 이상의 자식 뷰를 만들어 내는 기능 수행
+
+   - 뷰의 생성자에서 content 매개 변수에 @ViewBuilder 속성을 적용하고, body에서 content를 전달해 주기만 하면 된다.
+
+   - 뷰 빌더는 buildBlock이라는 타입 메서드에 값을 전달하고, 2개 이상의 뷰일 때는 TupleView라는 타입을 반환한다.
+
+   - 이 때 buildBlock 매개 변수의 최대 개수는 10개이므로 ViewBuilder 속성 매개 변수 최대 개수는 10개이다.
+
+   - 더 많은 뷰를 추가하고 싶을 때는 컨테이너 뷰를 활용
+
+   <br />
+
+   <br />
+
+   ### 프리뷰(Preview)
+
+   #### 프리뷰 동작 과정
+
+   - 현재 소스 에디터에 PreviewProvider 프로토콜을 준수하는 타입이 존재하는지 확인
+
+   - PreviewProvider 프로토콜의 필수 구현 사항인 previews 타입 프로퍼티에 뷰 생성
+
+   - 액티브 스킴의 목적지로 선택한 시뮬레이터 또는 맥에 연결한 기기의 형태로 프리뷰 컨테이너 렌더링.
+
+   - 리뷰 컨테이너를 직접 지정해줄 경우 해당 기기 형태로 렌더링
+
+   #### 프리뷰 기기 지정
+
+   - previewDevice(_:) 수식어를 적용해 현재 시뮬레이터로 선택된 기기와 별개로 직접 프리뷰를 위한 기기 지정 가능
+
+   - previewDisplayName 수식어를 통해 프리뷰 컨테이너의 이름 지정 가능
+
+   #### 레이아웃 변경
+
+   - previewLayout 수식어를 이용해 프리뷰 컨테이너의 크기 변경 가능
+
+   - 이 수식어는 PreviewLayout 열거형 타입의 값을 전달 받음
+
+      | 구분 | 설명 |
+       | --- | --- |
+      | device | 기본값, 컨테이너가 기기 본래의 크기와 형태로 나타남 |
+      | sizeThatFits | 컨테이너를 프리뷰 크기에 맞춰서 유동적으로 조절 |
+      | fixed(width:height:) | 지정한 너비와 높이에 맞춰서 컨테이너 크기 고정 |
+
+   #### EnvironmentValues
+
+   - 뷰를 구성하는 데 필요한 각종 환경설정과 관련된 정보를 EnvironmentValues 타입이 관리
+
+   - colorScheme, timeZone, locale, calender, layoutDirection, sizeCategory, undoManager 등 기존에는 UITraitCollectiond을 비롯해 다양흔 클래스에서 나뉘어 사용되고 관리되던 속성들을 이제 EnvironmentValues 하나에 모두 담아서 쉽게 접근 및 관리 가능
+
+   - EnvironmentValues는 프레임워크에 의해 별도로 관리되며, 어떤 뷰에서든 접근 가능하다. 
+
+   - 이 때 얻게 되는 값은 상위 계층의 뷰가 가진 환경 요소를 그대로 상속받는다.
+
+   - 단, 하위 계층에 있는 뷰에서 개별적으로 다른 환경을 구성했다면 그 뷰에 속한 자식 뷰들은 변경된 값을 우선 적용한다.
+
+   - environment 수식어를 통해 환경 구성 가능
+
+   <br />
+
+   #### @Environment
+
+   - @Environment 프로퍼티 래퍼는 읽기 전용으로 특정 뷰에서 EnvironmentValues의 특정 요소를 읽어와 뷰 구성에 반영해야 할 때 사용
+
+   #### Custom Environment
+
+   - 필요에 따라 앱에 환경 변수를 직접 추가하고 활용할 수 있음
+
+   - EnvironmentKey 프로토콜을 채택한 타입을 만들고, defaultValue 타입 프로퍼티를 정의해야 한다.
+
+   - 정의된 EnvironmentKey는 EnvironmentValues 타입에 있는 첨자를 이용해 다룰 수 있다.
+
+      ```swift
+      subscript<K>(key: K.Type) -> K.Value where K: EnvironmentKey
+      ```
+
+   - 따라서 EnvironmentValues 타입에 우리가 실제로 사용할 이름의 연산 프로퍼티를 추가한 뒤 이 첨자를 이용해 getter, setter를 정의한다.
+
+      ```swift
+      extension EnvironmentValues {
+      	var myEnvironment: Int {
+      		get { self[MyEnvironmentKey.self] }
+      		set { self[MyEnvironmentKey.self] = newValue }		
+      	}
+      }
+      ```
+
+      <br />
+
+### 데이터 흐름
+
+#### 데이터 흐름의 2가지 원칙
+
+- 데이터 의존성
+
+   - 뷰는 매번 데이터가 변경될 때마다 그 값을 반영해야 하므로, 데이터에 대한 의존성을 가진다.
+
+   - SwiftUI에서는 뷰가 어떤 데이터에 대해 의존성이 있는지만 알려주면 나머지는 프레임워크에서 알아서 처리하도록 설계(일일이 변경 사항을 뷰에 반영하려고 추가 코드를 수작업으로 작성할 필요 없음)
+
+   - 사용자가 앱과 상호 작용하여 일부 상태를 변형시키는 동작을 발생하면, 프레임워크에 의해 이 동작이 수행되고 시스템은 변경된 상태를 감지해 해당 상태에 의존하고 있는 뷰를 갱신해 새로운 버전의 UI 생성
+
+- 단일 원천 자료(Single Source of Truth)
+
+   - SwiftUI는 데이터를 크게 원천 자료와 파생자료로 구분
+
+      - 원천 자료 : 그 자체가 본질적인 데이터
+
+      - 파생 자료 : 원천 자료로부터 부차적으로 파생된 것
+
+   - 뷰가 참조하는 데이터는 단일 원천 자료여야 한다.
+
+   - 즉, 동일한 데이터 요소가 여러 곳으로 나뉘어 중복되지 않고 한 곳에서 다뤄지고 수정되어야 한다는 것을 의미
+
+   <br />
+
+#### @State
+
+- 뷰 자체에서 가져야 할 상태 프로피티이자 원천 자료
+
+- 어떤 데이터에 대한 영속적인 상태를 저장하고 관찰하는 역할 수행
+
+#### @Binding
+
+- 상위 뷰가 가진 상태를 하위 뷰에서 사용하고 수정할 수 있게 해주는 파생 자료
+
+- 연산 프로퍼티의 형태로 사용되어 그 자신이 직접 값을 보유하는 대신, 값을 읽고 수정하여 다른 뷰에 갱신된 데이터를 전달하는 역할
+
+```swift
+struct ContentView: View {
+    @State private var isFavorite = true
+    @State private var count = 0
+    
+    var body: some View {
+        VStack(spacing: 30) {
+            Toggle(isOn: $isFavorite) {
+                Text("isFavorite: \(isFavorite.description)")
+            }
+            
+            Stepper(value: $count) {
+                Text("Count: \(count)")
+            }
+        }
+        .frame(width: 300)
+    }
+}
+```
+
+- 두 프로퍼티에 모두 @State 프로퍼티 래퍼가 적용되었다. 이것은 토글과 스테퍼의 상태를 저장하기 위한 용도이며, true와 0은 초깃값으로 사용된다.
+
+- @State는 뷰 자신의 UI 상태를 저장하기 위한 데이터로 설계되었으므로, 해당 뷰가 소유하고 관리한다는 개념을 명시적으로 나타내기 위해 항상 private 접근 레벨을 사용하는 것이 좋다.
+
+- $ 접두어와 함께 프로퍼티를 사용하면, 내부적으로 projectedValue라는 프로퍼티를 이용하게 되는데 이 타입이 Binding 타입이기에 Binding 타입의 매개 변수에 상태 프로퍼티의 값을 전달해줄 수 있는 것이다.
+
+- 토글에 Binding 타입을 사용하는 이유는 토글은 Content View가 가진 상태를 표현하거나 변경하는 역할만 하면 되기 때문이다. 그 자신이 어떤 값을 보유하고 수정한다면 상위 뷰의 값과 불일치 문제가 발생할 수 있다.
+
+- 같은 뷰 내에서 값을 읽거나 쓰는 경우 접두어 없이 일반 변수처럼 사용할 수 있다.
+
+<br />
+
+#### ObservableObject
+
+- 뷰 외부의 모델이 가진 원천 자료를 다루기 위한 도구, 참조 타입을 사용하는 경우에 사용
+
+- @ObservedObject : ObservableObject 프로토콜을 준수하는 모델에 해 뷰가 의존성을 가진다는 것을 알리기 위해 사용하는 속성
+
+#### @Published
+
+- 변수의 값이 추가, 삭제, 변경되었다는 것을 뷰가 알 수 있게 해준다.
+
+- Obsevableobject를 준수한 클래스는 objectWillChange라는 프로퍼티를 사용할 수 있는데 objectWillChange.send()를 이용하기 위함이다(변경된 사항이 있는 것을 알려주는 함수)
+
+- @published는 해당 변수가 변경되면 자동으로 objectWillChange.send()를 호출해준다.
+
+#### @EnvironmentObject
+
+- @ObservedObject가 모델에 대한 직접적인 의존성을 만드는 데 사용했다면, @EnvironmentObject는 간접적인 의존성을 만드는 데 사용하는 래퍼 타입이다.
+
+- 바인딩 가능한 객체가 변경될 때마다 현재 view를 invalidate 하기 위해 상위 view에서 제공한 Binding 가능한 객체를 사용하는 dynamic view property
+
+   - 즉 모든 뷰가 읽을 수 있는 shared data
+
+- 반드시 environmentObject(_:) 메소드를 호출하여 상위 뷰에서 모델 객체를 설정해야 함
+
+<br />
+
+### Alert, ActionSheet
+
+- 각각 알림창 및 액션 시트를 화면에 출력하는 컨테이너 객체
+
+- 내부적으로는 UIKit의 UIAlertController를 그대로 활용
+
+#### Alert
+
+| 구분 | 설명 |
+ | --- | --- |
+| default | 기본 스타일이 반영된 일반적인 용도의 버튼 |
+| cancel | 수행하려던 작업을 취소하고, 창을 닫는다. Alert에서는 항상 화면에서 leading 방향에 위치하며 ActionSheet에서는 화면 하단에 고정, 최대 1개만 사용 가능하고 2개 이상 정의하면 런타임 에러 |
+| destructive | 데이터를 삭제하는 것과 같이 주의가 필요한 버튼에 사용, 빨간색으로 강조 |
+|     |     |
+
+- UIAlertController vs Alert
+
+   - UIAlertController는 버튼을 여러 개 추가할 수 있었으나 Alert는 최대 2개 버튼 구성 가능
+
+   - UIAlertController의 경우 UIAlertAction을 추가하지 않으면 알림창을 닫을 수 없었지만 Alert는 OK 버튼을 자동으로 생성
+
+#### ActionSheet
+
+- Alert와 달리 버튼을 배열 형태로 전달받는다
+
+- 버튼을 생략하면 기본 스타일로 cancel이 사용
+
+- ActionSheet은 아이폰이나 애플 워치 같은 작은 화면을 가진 기기에서만 사용 가능
+
+### 프레젠테이션 스타일
+
+- SwiftUI는 현재 pageSheet 스타일을 사용하는 Sheet와 popover 스타일을 사용하는 Popover 두 가지만 제공
+
+#### Sheet
+
+- pageSheet 스타일로 새로운 뷰를 출력
+
+- isPresented/item은 출력 조건을 전달
+
+- content 매개 변수는 출력될 뷰를 정의
+
+- onDismiss 매개 변수는 화면이 닫히기 직전에 수행할 작업 정의
+
+#### Popover
+
+- 콘텐츠와 관련된 추가적인 정보를 제공하거나 설정을 변경하도록 현재 화면 위로 일시적인 뷰를 표시하는 것
+
+- 아이패드와 같이 상대적으로 큰 화면을 사용하는 기기를 위해 만들어진 스타일
+
+- HIG에서도 가급적이면 아이폰에서 사용하지 말 것을 권장
+
+- attachmentAnchor : Popover의 앵커로 사용할 영역 또는 위치 결정
+
+<br />
+
+<br />
+
+#### ViewModifier
+
+- ViewModifier를 통해 커스텀 수식어를 만들 수 있다.
+
+- 이 프로토콜은 뷰 프로토콜처럼 body를 구현해야 하지만, 프로퍼티가 아닌 함수 형태로 구현한다.
+
+- 수식어로 사용할 타입을 만들어 ViewModifier 프로토콜을 채택하고, body 메서드 내에서 필요한 동작이나 효괄르 추가한다.
+
+   ```swift
+   struct CustomViewModifier: ViewModifier {
+   	var borderColor: Color = .red
+   	
+   	func body(content: Content) -> some View {
+   		content
+   		 .font(.title)
+   		 .foregroundColor(Color.white)
+   		 .padding()
+   		 .background(Rectangle().fill(Color.gray))
+   		 .border(borderColor, width: 2)
+   	}
+   }
+   ```
+
+- 위처럼 작성한 커스텀 수식어를 다음 2가지 방법 중 하나를 택해 적용할 수 있다.
+
+   ```swift
+   // #1
+   Text("Custom ViewModifier")
+   	.modifier(CustomModifier(borderColor: .blue))
+   
+   // #2
+   ModifiedContent(content: Text("Custom ViewModifier"),
+   								modifier: CustomViewModifier(borderColor: .blue))
+   ```
+
+- concat : 서로 다른 역할을 하는 ViewModifier를 결합하게 해주는 것
+
+   ```swift
+   struct MyModifier1: ViewModifier {
+   	func body(content: Content) -> some View {
+   		content.font(.title)
+   	}
+   }
+   
+   struct MyModifier2: ViewModifier {
+   	func body(content: Content) -> some View {
+   		content.foregroundColor(.blue)	
+   	}
+   }
+   
+   Text("My ViewModifier")
+   	.modifier(MyModifier1().concat(MyModifier2()))
+   ```
+
+- Extension을 활용한 ViewModifier 적용 (뷰 프로토콜 확장)
+
+   ```swift
+   extension View {
+   	func customModifier(borderColor: Color = .red) -> some View {
+   		self.modifier(CustomViewModifier(borderColor: borderColor)
+   	}
+   }
+   ```
+
+   <br />
+
+### 커스텀 스타일
+
+- 현재 대부분은 프레임워크에서 제공하는 스타일만 활용 가능하지만 버튼과 토글은 커스텀 스타일을 만들 수 있다.
+
+#### 버튼
+
+- 버튼 스타일은 ButtonStyle과 PrimitiveButtonStyle 두 가지 프로토콜로 제공된다.
+
+- 두 프로토콜은 공통으로 makeBody 메서드 하나만 구현해주면 되는데, configuration 매개 변수를 통해 프레임워크에서 제공해 주는 정보를 바탕으로 뷰를 재구성 해주면 된다.
+
+- ButtonStyle 프로토콜
+
+   - 버튼이 눌리고 있을 때와 아닐 때를 구분하여 버튼 외형을 정의하는 프로토콜
+
+   - 버튼 눌림 상태를 판단하기 위한 isPressed 프로퍼티 제공 
+
+- PrimitiveButtonStyle 프로토콜
+
+   - 버튼의 액션 수행 조건이나 그 시점 등 좀 더 세세한 컨트롤을 요구할 때 이용
+
+   - Configuration 타입에 isPressed 대신 trigeer라는 메서드가 주어져 버튼 이벹느 발생 시점을 직접 결정할 수 있다.
+
+#### 토글
+
+- 토글 또한 버튼을 구현하는 방식과 다르지 않다.
+
+- ToggleStyle 프로토콜을 채택하고 configuration 매개 변수를 제공하는 makeBody 메소드를 구현하면 된다.
+
+- 여기서 label 프로퍼티는 토글의 사용 용도를 알려주는 뷰에 불과해, 실제로 토글에서 중요한 스위치 기능을 하는 뷰는  Configuration 타입이 제공해 주는 isOn 값을 이용해 직접 만들어야 한다.
+
+   ```swift
+   // 상하로 움직이는 토글 예제
+   struct CustomToggleStyle: ToggleStyle {
+       let size: CGFloat = 30
+       
+       func makeBody(configuration: Configuration) -> some View {
+           let isOn = configuration.isOn
+           return HStack {
+               configuration.label
+               
+               Spacer()
+               
+               ZStack(alignment: isOn ? .top : .bottom) {
+                   Capsule()
+                       .fill(isOn ? Color.green : Color.red)
+                       .frame(width: size, height: size * 2)
+                   
+                   Circle()
+                       .frame(width: size - 2, height: size - 2)
+                       .onTapGesture {
+                           withAnimation {
+                               configuration.isOn.toggle()
+                           }
+                       }
+               }
+           }
+           
+       }
+   }
+   ```
+
+### UIAppearance
+
+- 클래스의 외형 프록시 객체에 수정 메시지를 전달하여, 그와 관련된 클래스의 모든 인스턴스에 대한 속성을 일괄적으로 변경할 수 있도록 편리한 기능을 제공하는 프로토콜
+
+- 단 한 번의 설정만으로도 전체 인스턴스에 대해 쉽게 원하는 값을 반영해 줄 수 있어 편리하지만, 반대로 모두에 반영되어 주의해야 함
+
+   ```swift
+   // ex) NavigationBar
+   UINavigationBar.appearance().titleTextAttributes = [
+   	.foregroundColor: UIColor.systemTeal,
+   	.font: UIFont.italicSystemFont(ofSize: 25)
+   ]
+   
+   // ex) UISwitch
+   UISwitch.appearance().onTintColor = .red
+   UISwitch.appearance().thumbTintColor = .green
+   ```
+
+<br />
+
