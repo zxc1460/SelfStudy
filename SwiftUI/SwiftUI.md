@@ -886,3 +886,445 @@ struct ContentView: View {
 
 <br />
 
+### 스크롤 뷰(ScrollView)
+
+- 스크롤을 통해 표현하는 컨테이너 뷰
+
+- 내부적으로 UIKit의 UIScrollView 활용
+
+- 생성자
+
+   ```swift
+   init(
+       _ axes: Axis.Set = .vertical,
+       showsIndicators: Bool = true,
+       @ViewBuilder content: () -> Content
+   )
+   ```
+
+   - _ axes : 스크롤 방향, 기본값 세로축 스크롤
+
+   - showsIndicators : 인디케이터 표현 여부, 기본값 true
+
+   - content : 콘텐츠 정의 매개 변수
+
+- 스크롤 뷰는 Color, Rectangle과 같이 확장성을 가진 뷰의 크기를 idealWidth 또는 idealHeight만큼만 할당한다.
+
+- 즉, 스크롤 뷰는 내부에서 스크롤 방향에 따라 fixedSize 수식어를 적절히 적용하고 있는 것이다.
+
+- ContentOffset
+
+   - UIScrollView에서는 콘텐츠의 위치를 다루기 위해 ContentOffset을 이용했지만 SwiftUI에서는 이 값을 제공하지 않는다.
+
+   - 따라서 자식 뷰에서 부모 뷰에 데이터를 전달할 수 있는 기능인 PreferenceKey를 이용하거나 지오메트리 리더의 글로벌 좌표를 이용해 값을 계산해야 한다.
+
+   <br />
+
+### 탭 뷰(TabView)
+
+- 탭 아이템을 이용해 여러 개의 콘텐츠 뷰를 쉽게 전환할 수 있도록 만들어진 컨테이너 뷰
+
+- 내부에서 UITabBarController 사용
+
+- 탭 아이템은 이미지, 텍스트 또는 이미지 + 텍스트 만 가능
+
+   - 이미지나 텍스트를 2개 이상 넣더라도 첫 번째 이미지와 텍스트만 보여짐
+
+- tabItem 수식어가 특정 뷰에서 사용되더라도 실제 적용은 탭 뷰에 포함된 순서에 따라 결정됨
+
+#### 태그(Tag)
+
+- SelectionValue를 관리하는 생성자를 사용해 탭뷰를 만든 뒤 각 탭 아이템 별로 tag 수식어를 통해 각 탭 아이템과 연관된 값을 지정할 수 있다.
+
+<br />
+
+### 애니메이션(Animation)
+
+- 그것이 발생하는 어떤 계기가 있기 전의 상태, 애니메이션이 동작하는 상태, 동작이 끝난 상태 크게 3가지로 구분해서 생각할 수 있다.
+
+- animation 수식어를 사용해 간단하게 적용 가능
+
+   ```swift
+   Image("cat")
+   	...
+   	.animation(.default)
+   ```
+
+- animation 수식어가 적용된 뷰는 애니메이션이 가능한 모든 상태(크기, 위치, 배경색, 투명도 등) 중 하나라도 변하면 뷰를 새로 그리면서 관련된 애니메이션 수행
+
+- 특정 상태의 변화에 대한 조건 설정 : Equatable 타입을 전달 받는 또 다른 animation 수식어를 이용
+
+   ```swift
+   .animation(.default, value: reduction)
+   ```
+
+- 애니메이션 비활성화 
+
+   - 애니메이션 수식어의 위치에 따라 애니메이션이 적용될 수식어를 결정할 수 있다.
+
+   - 나중에 적용되는 수식어들에 한해서 애니메이션을 적용해야 한다면 적용되기 전 수식어들 이후에 animation 수식어에 nil을 넣어주면 된다.
+
+   - withAnimation : 특정 값이 변하면 관련된 값을 사용하는 모든 뷰에 애니메이션을 동작하도록 하는 함수 
+
+- 암시적 vs 명시적 애니메이션
+
+   - 암시적 애니메이션 : animation 수식어 (그 이전에 적용된 모든 애니메이션 가능한 항목에 대해 애니메이션 적용)
+
+   - 명시적 애니메이션: withAniamation 함수 (애니메이션으로 동작하는 데 영향을 미칠 데이터를 직접 지정)
+
+#### 애니메이션 타이밍
+
+- default
+
+   - 매개 변수 생략 시 기본 적용되는 값
+
+   - easeInOut 유형이 사용되며 지속 시간 0.35초
+
+- linear
+
+   - 처음부터 끝까지 일정한 속도로 애니메이션 진행
+
+   - 반복되는 애니메이션에 많이 사용
+
+- easeIn
+
+   - 처음에는 느리게 시작했다가 점점 빠르게 진행되는 애니메이션
+
+   - 갑작스럽게 끝나는 느낌을 줄 수 있으므로 화면 내에서 움직이는 뷰보다는 화면 밖으로 사라지는 뷰 등에 적합
+
+- easeOut
+
+   - 처음에 빠르게 시작했다가 끝에서 천천히 진행되는 애니메이션
+
+   - 자연스러운 감속효과
+
+- easeInOut
+
+   - easeIn과 easeOut이 결합한 형태
+
+   - 시작과 끝에서 느리게 동작하고 중간 지점에서 빠르게 진행
+
+   - 일반적으로 가장 많이 사용하는 유형
+
+- timingCurve
+
+   - timingCurve 옵션을 사용해 타이밍 직접 조절 가능
+
+#### 스프링 애니메이션
+
+- 스프링 애니메이션을 이용해 목적 지점에서 진동 효과를 주어서 좀 더 동적인 느낌을 줄 수 있음
+
+   ```swift
+   .animation(.spring(response: 0.55, dampingFraction: 0.825, blendDuration: 0))
+   ```
+
+   - response : 스프링의 강성 및 애니메이션 지속 시간에 대한 근사치, dampingFraction 값에 영향을 받으므로 실제 지속 시간과는 차이가 있다.
+
+   - dampingFraction : 스프링 애니메이션의 진동 수준을 결정 짓는 값, 감쇠비에 해당
+
+      - 1이면 진동하지 않으면서 최단 시간 내에 목적 지점에서 그대로 멈춤
+
+      - 1보다 작으면 진동이 생김, 0에 가까울수록 진동이 커짐, 0이면 진동이 계속 유지되어 애니메이션 영구적으로 지속, 음수 값이면 진동이 오히려 점점 심해지므로 주의
+
+      - 1보다 크면 목적지에 도착하는 시간이 길어지고 진동하지 않음
+
+   - blendDuration : 스프링 애니메이션이 조합될 때 response 값의 변화를 보간(interpolate)하는데 사용
+
+#### 애니메이셔 제어
+
+- 애니메이션을 원하는 방식으로 제어하고 사용할 수 있도록 4가지 인스턴스 메서드 제공
+
+- delay
+
+   ```swift
+   func delay(_ delay: Double) -> Animation
+   ```
+
+   Double 타입의 값을 매개 변수로 받아 그 값에 해당하는 시간동안 애니메이션 지연시킨 후 수행
+
+- speed
+
+   ```swift
+   func speed(_ speed: Double) -> Animation
+   ```
+
+   애니메이션을 지정한 배율만큼 곱한 속도로 진행하게 만듬
+
+- repeatCount, repeatForever
+
+   ```swift
+   func repeatCount(_ repeatCount: Int, autoreverses: Bool = true) -> Animation
+   func repeatForever(autoreverses: Bool = true) -> Animation
+   ```
+
+   repeatCount는 애니메이션을 일정 횟수만큼만 반복할 때 사용, repeatForever는 이 반복을 무한정 실행 autoreverses 매개 변수는 true이면 애니메이션이 수행되기 전과 후의 모습을 오가는 모습을 볼 수 있다.
+
+<br />
+
+#### 트랜지션(Transition)
+
+- 뷰 계층 구조에 새로운 뷰가 추가되거나 기존에 있던 것이 제거될 때 적용되는 애니메이션의 한 종류
+
+- 따라서 transition 수식어 단독으로 동작하지 않고 animation 수식어나 withAnimation 함수와 함께 사용
+
+- 뷰 게층 구조에 변화가 생겨야 하므로, 뷰는 동일하고 그 안의 내용이 바뀌는 경우 트랜지션은 적용되지 않음
+
+   | 구분 | 설명 |
+    | --- | --- |
+   | opacity | 불투명도를 조절해 페이드 인 / 아웃 효과를 줌, 트랜지션을 적용하지 않았을 때 기본값 |
+   | scale | 뷰의 배율을 조절하여 전환 효과를 줌, 매개 변수에 값을 지정하여 앵커를 변경한 뒤 적용 기준점을 바꾸거나 최대 배율 지정 가능 |
+   | slide | 뷰가 삽입될 때는 좌측에서부터 나타났다가 제거될 때 우측으로 움직여 미끄러지듯이 사라지는 효과 |
+   | move | 상하좌우 중 한 가지 방향을 지정해, 그 방향에서 뷰가 나타났다가 다시 사라지게 함, slide와 유사하지만, slide는 나타날 때와 사라질 때 위치가 반대지만 move는 동일 |
+   | offset | x, y 좌표 또는 CGSize 값을 전달해 특정 좌표로부터 나타나거나 그 위치로 움직이면서 사라지는 뷰 표현 가능 |
+
+#### 트랜지션 합성
+
+- combined
+
+   ```swift
+   func combined(with: AnyTransition) -> AnyTransition
+   ```
+
+   서로 다른 전환 효과들을 하나의 효과로 합성하기 위한 메서드
+
+- asymmetric 
+
+   ```swift
+   static func asymmetric(insertion: AnyTransition, removal: AnyTransition) -> AnyTransition
+   ```
+
+   뷰가 삽입되고 제거될 때 서로 다르게 효과를 줄 때 사용하는 메서드
+
+- modifier
+
+   ```swift
+   static func modifier<E>(active: E, identity: e) -> AnyTransition where E: ViewModifier
+   ```
+
+   뷰가 제거되기 직전의 상태(active), 뷰가 삽입되어 보이게 될 상태(identity)를 정의하여 애니메이션의 시작과 끝에서 두 매개 변수 값의 차이만큼 전환 효과 발생
+
+   <br />
+
+### 커스텀 뷰 애니메이션
+
+#### Shape 프로토콜
+
+- Shape 프로토콜을 채택하면 body를 대신해 Path 타입을 반환하는 path(in:) 메서드를 구현해야 한다. 여기서 Path 타입으로 반환된 내용이 뷰로 사용된다.
+
+- Path는 기본적으로 주어진 경로의 내부를 가득 채우는 형태로 표현하지만 strokedPath 수식어를 사용하면 lineWidth 값만큼 테두리를 따라 그리게 된다.
+
+#### Animatable 프로토콜
+
+- SwiftUI에서 애니메이션이 가능하게 해주는 프로토콜
+
+- 이 프로토콜을 채택하면 animatableData 프로퍼티를 구현해 주어야 하는데, 이 프로퍼티의 값이 애니메이션의 다음 동작을 연산하는 데 사용된다. 그리고 이 값들이 연속적으로 이어지면서 화면에 그려지면 애니메이션이 되는 것이다.
+
+<br />
+
+### 제스처(Gesture)
+
+- SwiftUI에서는 Gesture 프로토콜을 채택한 여러 제스처 제공
+
+- 자주 사용하는 제스처들에 대해서는 이미 뷰 프로토콜에 별도의 수식어로 구현되어 있다.
+
+- 이외에 다른 제스처를 사용하거나 제스처를 조합하여 사용할 때는 gesture 수식어를 사용한다.
+
+   ```swift
+   func gesture<T>(_ gesture: T, including mask: GestureMask = .all) -> some View Where T : Gesture
+   ```
+
+| UIKit | SwiftUI |
+ | --- | --- |
+| UITapGestureRecognizer | TapGesture |
+| UILongPressGestureRecognizer | LongPressGesture |
+| UIPanGestureRecognizer | DragGesture |
+| UIPinchGestureRecognizer | MagnificationGesture |
+| UIRotationGestureRecognizer | RotationGesture |
+| UISwipeGestureRecognizer | 없음 |
+| UIScreenEdgePanGestureRecognizer | 없음 |
+
+#### TapGesture
+
+- 정해진 횟수만큼 탭 했을 때 지정한 동작을 수행하는 제스처
+
+- UITapGestureRecognizer는 손가락 몇 개로 터치했는 지도 알 수 있었으나 TapGesture는 아직 탭 횟수만 제어 가능
+
+- onTapGesture 수식어를 이용하거나, TapGesture의 인스턴스를 생성하여 gesture 수식어에 전달해 사용
+
+   ```swift
+   // onTapGesture
+   Circle().onTapGesture { print("Tapped") }
+   Circle().onTapGesture(count: 2) { print("Tapped") } // 탭을 2회 연속 해야 인식
+   
+   // TapGesture
+   let tapGesture = TapGesture(count: 2)
+   							.onEnded { print("Tapped") } // 제스처를 인식했을 때 수행할 액션 지정
+   return Circle().gesture(tapGesture)
+   ```
+
+#### LongPressGesture
+
+- 일정 시간 이상(기본값 0.5초) 화면을 누르고 있을 때 지정한 동작을 수행하는 제스처
+
+- TapGesture와 마찬가지로 onLongPressGesture 수식어를 추가하거나 직접 인스턴스를 생성해 적용
+
+- UILongPressGestureRecognizer는 연속형에 속해 터치한 채로 움직였을 때 이벤트가 반복적으로 발생했지만 SwiftUI에서는 단일 이벤트로 인식되는 불연속형으로 동작
+
+   ```swift
+   // onLongPressGesture
+   Circle().onLongPressGesture { print("LongPressed") }
+   Circle().onLongPressGesture(minimumDuration: 0.5, // 인식에 필요한 시간 지정
+   														// 처음 누른 위치에서 지정 거리 이상 떨어지면 인식 실패로 간주
+                               maximumDistance: 10, 
+   														// 뷰를 눌렀을 때 그리고 인식 성공 / 실패 시 호출
+                               pressing: { pressing in print(pressing) },
+   														// 길게 누른것으로 인식됐을 때 수행할 동작
+                               perform: { print("Recognized") })
+   
+   // LongPressGesture
+   let longPressGesture = LongPressGesture()
+   		.onChanged({ pressing in print(pressing) }) // 뷰를 눌렀을 때 호출
+   		.onEnded({ _ in print("Long Pressed!") }) // 길게 누른 것으로 인식됐을 때 호출
+   return Circle().gesture(longPressGesture)
+   ```
+
+#### DragGesture
+
+- 화면 터치 후 손을 뗄 떼까지 그 움직임에 따라 인식된 정보를 전달하는 제스처
+
+- 내부에 Value라는 이름의 구조체로 time, location, startLocation, translation 등의 프로퍼티가 정의되어 있어 어떤 정보를 제공하는지 확인할 수 있다.
+
+- DragGesture의 생성자는 minimumDistance와 coordinateSpace를 지정할 수가 있어, 일정 거리 이상을 드래그해야만 인식하도록 하거나 특정 좌표계를 기준으로 설정할 수 있다.
+
+   ```swift
+   init(minimumDistance: CGFloat = 10, coordinateSpace: CoordinateSpace = .local)
+   ```
+
+   ```swift
+   // 드래그한 위치를 따라 뷰가 움직이는 예제
+   // GestureState - 제스처를 사용 중일 때 변화하는 제스처의 현재 상태를 임시 저장하는 용도
+   @GestureState private var translation: CGSize = .zero
+   
+   let dragGesture = DragGesture()
+   		.updating($translation) { (value, state, _) in
+   			state = value.translation // translation의 프로퍼티에 지금까지 움직인 위치 저장
+   		}
+   
+   return Circle()
+   	.offset(translation)  // 제스처로 이동한 거리만큼 뷰 이동
+   	.gesture(dragG 
+   ```
+
+#### MagnificationGesture
+
+- 두 손가락을 터치해 오므리거나 벌리는 정도에 따라 그 변화된 값을 반환하는 제스처
+
+- 이 때 CGFloat 값을 전달하므로 이것을 그대로 scaleEffect 수식어에 적용하면 줌인 / 줌아웃 효과를 줄 수 있다.
+
+- 생성자에는 minimumScaleDelta 값을 지정할 수 있는데 이 값 이상의 비율로 확대 / 축소 해야만 제스처가 반응한다. 기본값 0.01
+
+   ```swift
+   // DragGesture와 달리 제스처가 종료되어도 상태가 초기화되자 않고 마지막 상태를 유지하는 예제
+   @GestureState private var scale: CGFloat = 1 // 제스처 사용 중 변화하는 값 임시 저장
+   @State private var latestScale: CGFloat = 1 // 제스처의 마지막 상태 영구 저장
+   
+   let magnificationGesture = MagnificationGesture()
+   	.updating($scale) { (value, state, _) in
+   		state = value // 현재 제스처의 확대, 축소 비율 저장
+   	}.onEnded { scale in
+   		self.latestScale *= scale // 제스처 종료 시 최종 배율 계산해 저장
+   	}
+   
+   return Circle()
+   	.scaleEffect(latestScale * scale) // 마지막으로 적용된 배율과 현재 변화하는 배율의 곱
+   	.gesture(magnificationGesture)
+   ```
+
+#### RotationGesture
+
+- 두 손가락을 터치한 뒤 회전시킨 정도에 따라 그 회전 각도를 반환하는 제스처
+
+- 이 때 반환하는 Angle 타입의 값을 그대로 rotationEffect 수식어에 적용하면 쉽게 뷰를 회전시키는 효과를 줄 수 있다.
+
+- 생성자는 minimumAngleDelta 값을 전달 받으며 이 각도 이상 회전해야 제스처기 인식한다, 기본값은 1도
+
+   ```swift
+   init(minimumAngleDelta: Angle = .degree(1))
+   ```
+
+   ```swift
+   @GestureState private var angle: Angle = .zero
+   
+   let rotationGesture = RotationGesture()
+   	.updating($angle) { (value, state, _) in
+   		state = value
+   	}
+   return Capsule()
+   	.rotationEffect(angle)
+   	.gesture(rotationGesture)
+   ```
+
+   <br />
+
+#### 제스처 콜백
+
+- 제스처는 updating, onChanged, onEnded라는 세 가지 형태의 콜백 제공
+
+- updating
+
+   - SwiftUI는 제스처를 인식하면 즉시 updating 콜백 호출(TapGesture 제외)
+
+   - 그리고 제스처가 다루는 값이 변화할 때마다 호출되는데, 동작이 종료될 때나 취소될 때는 호출되지 않음
+
+   - updating 콜백은 호출될 때마다 제스처에서 다루는 Value 타입에 대한 정보를 제공
+
+   - @GestureState는 @State와 달리 읽기 전용이므로 그 값을 직접 변경할 수 없고, updating 콜백 내에서 관련 매개 변수를 통해 수정 가능
+
+   - GestureState는 제스처가 동작 중일때만 활용될 임시 값을 저장하는 것으로, 제스처가 종료된 이후에는 다시 초깃값으로 돌아간다.
+
+- onChanged
+
+   - 제스처가 가진 값이 새로운 것으로 변경되었을 때 호출하는 콜백
+
+   - 시점상으로는 updating 이후 호출
+
+   - onChanged는 상태를 영구적으로 저장하는 데 사용
+
+- onEnded
+
+   - 제스처 인식이 종료되었을 때 호춣되는 콜백
+
+   - 제스처가 마지막 순간에 가진 값을 전달
+
+   - updating과 마찬가지로 종료되었을 때 다시 초깃값으로 돌려줌
+
+#### Gesture 수식어
+
+- highPriorityGesture : 우선 순위를 가지는 제스처 수식어
+
+- simultaneousGesture : 두 가지 이상 제스처를 동시에 사용해야 할 때 쓰는 제스처 수식어
+
+#### GestureMask
+
+- 제스처 마스크를 이용해 제스처를 특징 지어 사용하게 할 수 있다.
+
+- gesture : 자식 뷰에 포함한 제스처는 무시하고 해당 수식어로 추가하는 제스처를 사용
+
+- subviews : 해당 수식어로 추가하는 제스처는 무시되고 자식 뷰에 포함된 제스처 사용
+
+- none : 해당 뷰와 자식 뷰에 포함된 모든 제스처 무시
+
+- all : 해당 뷰와 자식 뷰에 포함된 모든 제스처 인식
+
+<br />
+
+### 컨텍스트 메뉴(ContextMenu)
+
+- 표준 시스템 제스처에 반응해, 특정 뷰를 길게 눌렀을 때 해당 뷰와 관련된 메뉴를 보여주는 기능
+
+- 두 가지 수식어 중 하나를 사용해야 한다.
+
+   - contextMenu(_:) : ContextMenu라는 컨테이너 타입을 전달하여 메뉴 아이템 구성, 매개 변수 타입이 옵셔널이므로 컨텍스트 메뉴를 출력하지 않아야 하는 상황에는 nil 전달
+
+   - contextMenu(menuItems:): 뷰 빌더를 이용하여 바로 메뉴 아이템을 정의, 이 수식어는 nil 대신 조건문을 이용해 메뉴 아이템 구성을 제어
+
