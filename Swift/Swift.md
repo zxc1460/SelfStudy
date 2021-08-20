@@ -1746,3 +1746,92 @@ autoreleasepool {
 
 <br />
 
+### Opaque Types(불투명 타입)
+
+```swift
+var body: some View { ... }
+```
+
+- 구조체를 사용하고 제네릭을 적극적으로 활용하는 SwiftUI의 구현 방식에서는 뷰를 추가하거나 변경할 때마다 새로운 타입이 만들어진다. 이렇게 뷰가 추가되거나 빠질 때마다 body의 타입도 계속해서 수정해주어야 하는 것과 타입 정보에는 우리가 사용할 수도 없고 프레임 워크 제공자가 공개하기 꺼려할 수 있는 타입들도 포함되어 있기 때문에 불투명 타입이란 개념이 등장
+
+- 자세한 타입과 구현에 대한 정보를 유저에 숨기고 특정 프로토콜 유형을 따르는 API라는 것만 전달하고 싶을 때 사용
+
+- 프로토콜 타입을 반환하면서도 타입에 대한 정체성을 보장해 API 내부에서 강력한 타입 검사 기능을 활용할 수 있다.
+
+- some 키워드는 프로퍼티와 첨자, 함수에 반환 타입에만 적용 가능하고, some 다음에 올 수 있는 타입은 프로토콜, 클래스, Any, AnyObject로 한정된다.
+
+- 불투명 결과 타입(Opaque Result Types) 또는 불투명 반환 타입(Opaque Return Type)이라고 함
+
+- 불투명 타입을 가지는 함수 / 메소드는 자신의 반환 타입 정보를 외부에 숨길 수 있다.
+
+- 반환 타입을 숨기는 것은 모듈로 호출되는 코드와 모듈 사이에서 유용하게 사용될 수 있다.
+
+- 불투명 타입을 사용하면 컴파일러는 타입 정보에 접근할 수 있지만 모듈의 클라이언트는 할 수 없다.
+
+- API를 추상화하고 모듈 간 결합성을 낮추는 데 도움된다.
+
+- 호출된 코드가 호출한 코드의 타입을 결정한다.
+
+   ```swift
+   // 호출된 쪽에서 타입 결정
+   func opaqueTypeFunction() -> some Animal { Dog() }
+   // 호출한 측은 추상화된 타입을 전달받음
+   let animal: some Animal = opaqueTypeFunction()
+   ```
+
+- 제네릭의 매개 변수와 같이 불투명 타입은 정적 타입 시스템에서만 불투명성이 유지되며 런타임 시에 타입이 드러난다. 
+
+   ```swift
+   protocol Animal {}
+   struct Dog: Animal { var color = "bronw" }
+   let dog: some Animal = Dog()
+   dog.color // 컴파일 오류, 정적 타입 시스템에서 아직 불투명성이 유지되므로 Animal 프로토콜에 대한 정보만 갖고 있으므로 color 프로퍼티를 가져올 수 없다.
+   (dog as! Dog).color // "brown" 런타임 시 타입이 드러나기 때문에 오류가 나지 않는다.
+   ```
+
+- 
+
+### Property Wrapper
+
+- Swift 5.1에서 추가된 기능
+
+- 특정한 제약이나 기능 등을 정의해 둔 클래스, 구조체, 열거형 타입에 적용하여 그 타입 이름과 동일한 커스텀 속성을 만들어 주는 선언 속성
+
+- 프로퍼티에 적용할 수 있는 커스텀 속성을 직접 정의하고 활용하도록하기 위함
+
+- 프로퍼티에 대한 접근 패턴을 정의할 수 있다.
+
+- 프로퍼티에 별도의 저장소를 제공하며, 쉽고 깔끔한 방법으로 코드를 재활용할 수 있다.
+
+- 반복되는 코드를 제거할 수 있다.
+
+- 프로퍼티 래퍼 타입의 이름을 통해 그 프로퍼티가 가진 기능에 대한 문서화 역할도 수행
+
+```swift
+var isLoggedIn: Bool {
+    get { UserDefaults.standard.bool(forKey: "IS_LOGGED_IN") }
+    set { UserDefaults.standard.setValue(newValue, forKey: "IS_LOGGED_IN") }
+}
+
+var isFirstLogin: Bool {
+    get { UserDefaults.standard.bool(forKey: "IS_FIRST_LOGIN") }
+    set { UserDefaults.standard.setValue(newValue, forKey: "IS_FIRST_LOGIN") }
+}
+```
+
+- 위 코드처럼 UserDefaults로 값을 관리하는 프로퍼티가 있을 때 이 둘의 차이점은 키가 다르다는 것 뿐인데, 반복 작성해야 하는 코드들이 많다. 이러한 반복 작성 코드를 줄이기 위해 프로퍼티 래퍼를 활용할 수 있다.
+
+```swift
+@propertyWrapper                // Property Wrapper 선언 속성
+struct UserDefault<Value> {
+    let key: String             // 사용자 정의 프로퍼티
+    
+    var wrappedValue: Value? {  // Property Wrapper 필수 구현 프로퍼티
+        get { UserDefaults.standard.object(forKey: key) as? Value }
+        set { UserDefaults.standard.setValue(newValue, forKey: key) }
+    }
+}
+```
+
+- wrappedValue는 @UserDefault 속성이 선언된 프로퍼티를 사용할 때 내부에서 실제로 연산에 활용되는 프로퍼티, 연산 / 저장 프로퍼티 어느 것으로도 구현할 수 있다.
+
