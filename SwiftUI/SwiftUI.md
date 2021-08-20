@@ -1328,3 +1328,214 @@ struct ContentView: View {
 
    - contextMenu(menuItems:): 뷰 빌더를 이용하여 바로 메뉴 아이템을 정의, 이 수식어는 nil 대신 조건문을 이용해 메뉴 아이템 구성을 제어
 
+   <br />
+
+### 폼(Form)
+
+- 데이터 입력에 사용되는 다양한 컨트롤을 섹션을 이용해 그룹화하여 표현하기 위한 컨테이너 뷰
+
+   ```swift
+   Form {
+   	// Content
+   }
+   ```
+
+- 폼은 내부적으로 리스트를 사용하는데 자동으로 각 플랫폼에 적합한 스타일로 설정됨
+
+   - iOS, macOS는 GroupedListStyle
+
+   - watchOS는 PlainListStyle
+
+### 피커
+
+- 다양한 선택지 중에서 하나의 값을 선택할 때 사용하는 컨트롤
+
+- 적용 스타일에 따라 UIPickerView나 UISegmentedControl 클래스와 같은 역할 수행
+
+   ```swift
+   Picker(selection: .constant(1), label: Text("Picker")) {
+   		Text("1").tag(1)
+   		Text("2").tag(2)
+   }
+   ```
+
+   - 피커를 구현할 때는 selection 매개 변수에 바인딩 타입을 전달해 피커에서 선택한 값을 연동
+
+   - label 매개 변수에는 피커의 용도를 나타내기 위한 뷰 정의
+
+   - 텍스트는 사용자에게 보이는 피커의 선택지를 의미하고, 태그는 선택지를 구분하기 위한 식별자로 selection 매개 변수에 연동될 값을 지정
+
+#### 피커 스타일
+
+- DefaultPickerStyle : 상황에 따라 다른 스타일 적용
+
+- WheelPickerStyle
+
+   - UIPickerView를 사용해 세로 방향으로 나열된 선택지 중 하나를 선택하는 스타일
+
+   - 피커를 단독으로 사용하는 경우 DefaultPickerStyle 역시 이 스타일 사용 (macOS와 tvOS는 지원하지 않음)
+
+- SegmentedPickerStyle
+
+   - UISegmentedControl 클래스 사용
+
+   - 데이터가 가로 방향으로 나열되고, 탭으로만 선택할 수 있다.
+
+   - 현재 SwiftUI에서 제공하는 기능 중에는 선택 항목에 대한 색을 변경할 수 있는 방법이 없기 때문에, UISegmentedControl의 외형 프록시 객체에 값을 전달하는 방법으로 수정해주어야 한다
+
+#### 폼과 피커
+
+- 폼에서 피커를 사용하는 경우 리스트를 이용한 형식으로 표현한다.
+
+- 피커만 사용할 경우 화면에 즉시 데이터를 선택할 수 있지만, 폼에서는 하나의 행에 피커 레이블과 선택된 값이 무엇인지만 알려주고 내비게이션 뷰에 포함시켜 다음 화면에서 값을 선택할 수 있다.
+
+- 이 스타일은 폼에서 피커를 사용했을 때 피커 스타일을 생략하거나 DefaultPickerStyle로 지정하면 된다.
+
+<br />
+
+### 텍스트 필드(TextField)
+
+- 사용자가 직접 텍스트를 수정할 수 있는 인터페이스를 제공하는 컨트롤
+
+   ```swift
+   TextField("PlaceHolder", text: value)
+   ```
+
+   - 첫 번째 매개 변수는 입력된 텍스트가 없을 때 나타내줄 플레이스 홀더의 문자열
+
+   - 두 번째 매개 변수는 사용자가 입력한 텍스트와 연동할 바인딩 타입 전달
+
+- 내부적으로 UITextField 사용
+
+- 텍스트 필드 스타일
+
+   - DefaultTextFieldStyle
+
+   - PlainTextFieldStyle
+
+      - 테두리 없음
+
+   - RoundedBorderTextFieldStyle
+
+      - 텍스트 필드의 테두리가 둥근 사각형으로 그려짐
+
+- 이미지 조합 : HStack을 이용해 이미지와 텍스트 필드를 조합하면 텍스트 필드의 용도를 한눈에 파악하기 좋다.
+
+   ```swift
+   Form {
+   	HStack {
+   		Image(systemName: "envelope").frame(width: 30)
+   		TextField("이메일", text: $email)
+   			.textFieldStyle(RoundedBorderTextFieldStyle())
+   	}
+   }
+   ```
+
+- 생성자
+
+   - formatter 매개 변수 : 포맷터를 지정해서 형식을 강제할 수 있음, 단, 포맷터를 사용한 경우 단순히 출력되는 것만 바뀌는 것이 아니라 텍스트 필드에 다른 값을 입력할 때도 포맷터 형식에 맞게 수정해주어야 함
+
+   - onEditingChanged : 텍스트 필드의 텍스트 편집이 시작되는 순간과 종료되는 순간으로 나뉘어 호출되며, 현재 편집 중인지 아닌지를 의미하는 Bool 타입의 값을 전달. 즉, 편집이 시작될 때는 true, 종료일 때는 false UIKit에서 사용했던 onEditingChanged 처럼 매번 글자를 입력할 때마다 호출되는 것이 아님
+
+      ```swift
+      onEditingChanged: @escaping (Bool) -> Void = { _ in }
+      ```
+
+   - onCommit : 텍스트 필드가 포커싱 되어 있는 동안 사용자가 키보드의 리턴키를 눌렀을 때 수행할 작업을 정의하는 매개 변수, 텍스트 필드에 대한 입력이 끝났을 때가 기준이 아니므로 다른 화면으로의 이동, 다른 텍스트 필드로 포커스가 이동할 때는 호출되지 않는다.
+
+      ```swift
+      onCommit: @escaping () -> Void = {}
+      ```
+
+- 수식어
+
+   - textContentType : 입력할 데이터가 무작위 값이 아닌 주소, 이메일, 이름, 우편 번호 등 특정 사용 목적이 있음을 키보드와 시스템에 전달하여 의미 부여, 시스템에서 사용자가 입력할 내용을 예상 가능한 경우, 자동으로 입력할 수 있게 값을 제안
+
+   - keyboardType : 키보드 타입 선택, 미지정 시 default 사용
+
+   - autocapitalization : 입력한 텍스트를 자동으로 대문자 변환하는 방식에 대한 스타일 지정
+
+      - 4가지 (none, words, sentences, allCharacters) 중 하나 선택 가능, 기본값은 sentences로 문장 첫 글자만 대문자 변환
+
+   - disableAutocorrection : 입력한 텍스트를 시스템이 자동으로 교정할 수 있게 할 것인지 허용 여부 결정 기본값 nil
+
+   - truncationMode : 텍스트를 텍스트 필드 범위 내에서 다 표현하지 못할 때 head, middle, trail 중 어떤 영역의 텍스트를 생략할지 결정, 기본값은 trail이어서 뒷부분 생략
+
+   - minimumScaleFactor : 텍스트를 생략하지 않고도 가능한 한 더 많은 텍스트를 표현할 수 있도록, minimumScaleFactor에 지정한 비율 이하로 내려가기 직전까지 글자 크기 조절, 기본값 1.0
+
+   - allowsTightening : 텍스트를 생략하기 전에, 먼저 자간을 압축하여 전체 텍스트를 표현할 공간을 조금이라도 더 확보할지를 결정, 기본값 false
+
+   - multilineTextAlignment : 텍스트 필드에 입력한 텍스트를 어떻게 정렬할지 결정, leading, center, trailing이 있으며 기본값 leading
+
+   - flipsForRightToLeftLayoutDirection : RTL 언어 환경에서 콘텐츠 방향을 반대로 향하게 할지를 결정하는 수식어
+
+### 시큐어 필드(SecureField)
+
+- UIKit에서는 입력값을 숨겨야 할 경우 UITextField의 isSecureTextEntry 프로퍼티를 활성화하여 문자열을 가렸다.
+
+- 그러나 SwiftUI는 텍스트 필드의 속성을 변경하는 대신 시큐어 필드라는 별개의 컨트롤 사용
+
+- 코드 스니펫 역시 텍스트 필드와 동일
+
+   ```swift
+   SecureField(Label, text: Value)
+   ```
+
+- 눈에 띄는 차이점은 생성자의 매개 변수로 onChangeEditing이 제외되고 onCommit만 사용 가능
+
+<br />
+
+### UIViewControllerRepresentable
+
+- UIKit의 뷰 컨트롤러를 SwiftUI에서 표현할 수 있게 해주는 프로토콜
+
+- 필수로 구현해야 하는 메서드 2개, 상황에 따라 선택할 수 있는 메서드 2개
+
+- 필수 메서드
+
+   - makeUIViewController(context:) : SwiftUI의 뷰로 사용할 UIViewController 타입을 반환하는 메서드, 인스턴스를 생성하고 초기 설정을 진행, 매개 변수로 전달되는 context를 통해 설정에 필요한 정보를 얻을 수 있다.
+
+   - updateUIViewController(_:context:) : 인스턴스 생성 시 makeUIViewController 메서드 호출 직후에 함께 호출된 뒤, 이후부터는 뷰가 갱신될 때마다 반복적으로 호출, 어떤 시점이나 조건에 따라 수행해야 하는 작업이 있다면 이 메서드 활용
+
+   - dismantleUIViewController(_:context:) : 뷰 컨트롤러를 제거하기 전에 정리 코드를 실행하는 소멸자 역할, 타입 메서드로 선언
+
+   - makeCoordinator() 
+
+      - UIKit에서 흔하게 사용되는 @objc 선언 속성을 이용한 타깃 - 액션 패턴은 클래스에서만 사용 가능하고, 프레임워크에서 제공해 주는 델리게이트 프로토콜 역시 NSObjectProtocol을 채택한 클래스 타입이어야 한다. 그런데 SwiftUI의 뷰는 구조체로 정의되어 있어 이 기능들을 활용할 수 없기 때문에 이를 보완하고자 UIViewControllerRepresentable 프로토콜을 채택한 타입 내부에 Coordinator 라는 이름의 클래스를 정의하여 이것을 UIViewController 타입과 SwiftUI 간 조정하는 데 활용
+
+      - makeCoordinator 메서드는 이 Coordinator 클래스의 인스턴스를 만들고 UIViewControllerRepresentableContext에 담아둔다. 그리고 이것은 makeUIViewController와 updateUIViewController 메서드의 매개 변수로 제공되어야 하므로 makeCoordinator 메서드가 순서상 가장 먼저 호출된다.
+
+   - 생성 : makeCoordinator → makeUIViweController → updateUIViewController
+
+   - 갱신 : updateUIViewController
+
+   - 소멸 : dismantleUIViewController
+
+#### UIViewControllerRepresentableContext
+
+- 아래 3가지 속성을 가진다.
+
+   - coordinator : makeCoordinator 메서드에서 반환한 Coordinator 타입에 대한 정보를 가지고 있다. 해당 메서드를 구현하지 않았다면 Void 타입을 반환
+
+   - transaction : 애니메이션을 멈추거나 변경하는 등 애니메이션 제어 기능을 제공
+
+   - environment : SwiftUI의 현재 환경 정보를 읽어서 UIViewController에 전달하는 데 사용, 예를 들어 sizeCategory, locale, colorScheme 같은 시스템 환경이 될 수 있고 앱에서 정의한 커스텀 프로퍼티일 수도 있다.
+
+#### UIViewRepresentable
+
+- UIView 클래스를 SwiftUI에서 사용할 수 있게 지원하는 프로토콜
+
+- UIViewControllerRepresentable과 이름만 빼고 모두 동일
+
+<br />
+
+### UIKit에서 프리뷰 활용
+
+- 뷰 컨트롤러를 보여줄 프리뷰 구조체 생성
+
+- 프리뷰 구조체에서 UIViewControllerRepresentable 프로토콜 채택
+
+- 프리뷰만을 위한 용도이므로 makeUIViewController 메서드에서 뷰컨트롤러 그대로 반환
+
+<br />
+
