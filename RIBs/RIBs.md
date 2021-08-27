@@ -2,11 +2,11 @@
 
 #### RIBs 튜토리얼
 
-[RIBs Tutorial 1](ribs-tutorial-1/index.md)
+[RIBs Tutorial 1](ribs-tutorial-1/RIBs-tutorial-1.md)
 
-[RIBs Tutorial 2](ribs-tutorial-2/index.md)
+[RIBs Tutorial 2](ribs-tutorial-2/RIBs-tutorial-2.md)
 
-[RIBs Tutorial 3](ribs-tutorial-3/index.md)
+[RIBs Tutorial 3](ribs-tutorial-3/RIBs-tutorial-3.md)
 
 <br />
 
