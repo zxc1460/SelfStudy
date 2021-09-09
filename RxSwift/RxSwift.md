@@ -1,6 +1,6 @@
 # RxSwift
 
-[RxSwift 공식 홈페이지 번역](Rxswift-공식-홈페이지-번역/index.md)
+[RxSwift 공식 홈페이지 번역](https://github.com/zxc1460/Self_Study/blob/master/RxSwift/Rxswift-공식-홈페이지-번역/Rxswift-공식-홈페이지-번역.md)
 
 <br />
 
