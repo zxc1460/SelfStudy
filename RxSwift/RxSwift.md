@@ -139,6 +139,8 @@
 
    - Observable 타입
 
+<br />
+
 ### Observer
 
 - Observable을 구독하고 Observable이 배출하는 이벤트에 대해 반응(onNext, onCompleted, onError)
@@ -228,10 +230,7 @@ __just__
 
    ```swift
    Observable.just([1, 2, 3])
-   	.subscribe { print($0) }
-   	.disposed(by: disposeBag)
-   // next([1, 2, 3])
-   // completed
+   
    ```
 
 __of__
@@ -660,12 +659,11 @@ __skip__
 
    ```swift
    Observable.from([1, 2, 3])
-       .elementAt(2)
+       .skip(2)
        .subscribe { print($0) }
        .disposed(by: disposeBag)
    
    // next(6)
-   // next(7)
    // completed
    ```
 
@@ -1306,4 +1304,111 @@ RxSwift → Scheduler
 - 이 스케줄러는 백그라운드에서 수행해야 하는 큰 작업이 있고 maxConcurrentOperationCount를 이용해 병행 처리 과정을 미세 조정할 경우에 적합하다.
 
 - 이 스케줄러는 백그라운드에서 수행해야 하는 더 큰 작업 청크가 있고 maxConcurrentOperationCount를 사용하여 동시 처리를 미세 조정할 경우에 적합하다.
+
+<br />
+
+<br />
+
+### Traits
+
+> Traits를 통해 명확한 이벤트 발생 규칙을 가진 Observable을 사용하도록 지원한다.
+코드의 명확함과 직관성을 가지고자 할 때 선택적으로 사용할 수 있고, 코드의 의도를 분명히 할 수 있다는 장점이 있다.
+
+<br />
+
+Traits은 간단하게 struct로 읽기 전용 Observable sequence property와 함께 랩핑 되어있다.
+
+```swift
+struct Single<Element> {
+		let source: Observable<Element>
+}
+
+struct Driver<Element> {
+		let source: Observable<Element>
+}
+```
+
+<br />
+
+#### Single
+
+- Observable의 변형으로 일련의 요소들을 방출하는 대신 항상 단일 요소 또는 오류를 방출하도록 보장한다.
+
+- 정확히 하나의 요소 또는 error만 방출 (success or error)
+
+- 부수작용을 공유하지 않는다.
+
+- ex) 응답, 오류만 반환할 수 있는 HTTP 요청 수행
+
+<br />
+
+#### Completable
+
+- complete 하거나, error를 방출하고, 아무 요소도 방출하지 않는 것을 보장하는 Observable
+
+- 제로 요소 방출
+
+- 완료 이벤트 또는 에러만 방출
+
+- 부수작용을 공유하지 않는다.
+
+<br />
+
+#### Maybe
+
+- 단일 요소를 방출하거나 요소를 방출하지 않고 오류를 낼 수 있다.
+
+- 이 세가지 이벤트 중 하나라도 방출되면 Maybe는 종료된다. 
+
+<br />
+
+#### Driver
+
+- RxCocoa Traits
+
+- 오류를 방출하지 않는다.
+
+- observe는 Main Scheduler에서 발생
+
+- 부수작용을 공유한다 (shareReplayLatestWhileConnected)
+
+- UI레이어에서 reactive 코드를 작성하는 직관적인 방법을 제공하거나 애플리케이션에서 데이터 스트림을 모델링 하는 모든 경우를 위한 것
+
+<br />
+
+#### ControlProperty 
+
+- RxCocoa Traits
+
+- UI 요소의 속성을 나타내기 위한 Observabe / ObservableType을 위한 Trait
+
+-  값의 순서는 초기 제어값과 사용자 시작 값 변경을 나타낸다. 프로그램 상의 값 변화는 리포트되지 않는다.
+
+- 오류를 발생하지 않는다.
+
+- MainScheduler 에서 이벤트를 전달한다.
+
+<br />
+
+#### ControlEvent
+
+- RxCoca Traits
+
+- UI 요소의 이벤트를 나타내는 Observable / ObservableType을 위한 Trait
+
+- 오류가 발생하지 않는다.
+
+- MainScheduler 에서 이벤트를 전달한다.
+
+- 구독자에게 초기값을 전송하지 않는다.
+
+<br />
+
+### Bind 
+
+- bind를 사용해 스트림에서 오류가 발생하지 않고 항목 이벤트에만 관심이 있다고 표현할 수 있다.
+
+- 내부적으로 subscribe 사용
+
+<br />
 
